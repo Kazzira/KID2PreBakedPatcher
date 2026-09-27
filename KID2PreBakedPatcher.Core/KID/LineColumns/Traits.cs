@@ -128,6 +128,12 @@ public static partial class TraitExtensions
 
             var item = items[0];
 
+            if (item.StartsWith('-'))
+            {
+                var innerTrait = item[1..].ToArmorTraitColumn() as ArmorTrait_NonNegate ?? throw new InvalidOperationException($"Invalid armor trait: {item}");
+                return new ArmorTrait_Negate(innerTrait);
+            }
+
             if (item.Length == 1)
             {
                 if (item == "E") return new ArmorTrait_Enchanted();
