@@ -70,6 +70,17 @@ public class LineParser : ILineParser
         Trait? traitColumn = null;
         Chance? chanceColumn = null;
 
+        // TEMPORARY, just want to test weapons.
+        if (typeEnumValue != Type.Weapon)
+        {
+            return new Line
+            {
+                Keyword = keywordColumn,
+                RecordType = typeColumn,
+                Filter = filterColumn
+            };
+        }
+
         if (columns.Count > 3)
         {
             traitColumn = columns[3].ToTraitColumn(typeEnumValue);
