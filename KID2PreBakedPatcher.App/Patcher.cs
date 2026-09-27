@@ -203,6 +203,8 @@ public class Patcher(IPatcherState<ISkyrimMod, ISkyrimModGetter> State)
     {
         return Filter switch
         {
+            Core.KID.LineColumns.Filter_And filters => weapon => filters.Filters.All(filter => GetWeaponFilterSingle(filter)(weapon)),
+            Core.KID.LineColumns.Filter_Or filters => weapon => filters.Filters.Any(filter => GetWeaponFilterSingle(filter)(weapon)),
             Core.KID.LineColumns.Filter_Exclude        filter => weapon => !GetWeaponFilterSingle(filter.Filters)(weapon),
             Core.KID.LineColumns.Filter_NifPathFull    filter => weapon => weapon.Model?.File.GivenPath?.Equals(filter.NifPath, StringComparison.OrdinalIgnoreCase) ?? false,
             Core.KID.LineColumns.Filter_NifPathPartial filter => weapon => weapon.Model?.File.GivenPath?.Contains(filter.NifPath, StringComparison.OrdinalIgnoreCase) ?? false,

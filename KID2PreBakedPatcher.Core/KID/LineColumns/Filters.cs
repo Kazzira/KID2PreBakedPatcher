@@ -74,7 +74,7 @@ public  static partial class FilterExtensions
 
     extension(string Filter)
     {
-        public Filter ToColumnFilter(Enums.Type Type, StringToColumnOption Option = StringToColumnOption.None)
+        public Filter ToColumnFilter(Enums.Type Type)
         {
             if (Filter.Contains(','))
             {
@@ -87,7 +87,7 @@ public  static partial class FilterExtensions
             if (Filter.Contains('+'))
             {
                 var subFilters = Filter.Split('+').Select(f => f.Trim()).Where(f => !string.IsNullOrEmpty(f)).ToList();
-                var filterObjects = subFilters.Select(f => f.ToColumnFilter(Type, StringToColumnOption.KeywordOnly)).ToList();
+                var filterObjects = subFilters.Select(f => f.ToColumnFilter(Type)).ToList();
 
                 return new Filter_And(filterObjects);
             }
@@ -134,11 +134,6 @@ public  static partial class FilterExtensions
             if (NoneRegex().IsMatch(Filter))
             {
                 return new Filter_None();
-            }
-
-            if (Option == StringToColumnOption.KeywordOnly)
-            {
-                return new Filter_KeywordFull(Filter);
             }
 
             // If none of the above, treat it as an EditorID, FullName, or Keyword filter
