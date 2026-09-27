@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>true</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Mutagen.Bethesda.FormKeys.SkyrimSE" Version="3.4.0" />
+    <PackageReference Include="Mutagen.Bethesda.Skyrim" Version="0.54.2" />
+    <PackageReference Include="Mutagen.Bethesda.Synthesis" Version="0.36.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\KID2PreBakedPatcher.Core\KID2PreBakedPatcher.Core.csproj" />
+  </ItemGroup>
+</Project>
