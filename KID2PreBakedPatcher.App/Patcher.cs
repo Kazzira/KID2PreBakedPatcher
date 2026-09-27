@@ -220,17 +220,25 @@ public class Patcher(IPatcherState<ISkyrimMod, ISkyrimModGetter> State)
 
     private void PatchWeapons(List<Core.KID.Line> Lines)
     {
+        Console.WriteLine($"Patching {Lines.Count} weapons lines");
+
         var keywordToLines = Lines.GroupBy(line => line.Keyword)
             .ToDictionary(group => group.Key, group => group.ToList());
+        
 
         foreach (var keyword in keywordToLines.Keys)
         {
+            Console.WriteLine($"Patching weapons with keyword {keyword} ({keywordToLines[keyword].Count} lines)");
+
             var linesForKeyword = keywordToLines[keyword];
             var weapons = State.LoadOrder
                                .PriorityOrder
                                .WinningOverrides<IWeaponGetter>()
                                .Where(weap => linesForKeyword.Any(line => GetWeaponFilter(line.Filter, line.Trait, line.Chance)(weap)))
                                .ToList();
+            
+            Console.WriteLine($"Found {weapons.Count} weapons to patch");
+
             
             // Lookup the keyword as a form. If it does not exist, then create a new keyword with the given name.
             IKeywordGetter? keywordForm = null;
@@ -253,8 +261,10 @@ public class Patcher(IPatcherState<ISkyrimMod, ISkyrimModGetter> State)
                     break;
             }
 
-            foreach (var weapon in weapons)
+            foreach (var (i, weapon) in weapons.Select((weapon, i) => (i, weapon)))
             {
+                Console.WriteLine($"Patching weapon {i + 1}/{weapons.Count}: {weapon.EditorID} ({weapon.FormKey})");
+        
                 if (weapon.Keywords?.Any(kw => State.LinkCache.Resolve(kw)?.EditorID == keywordForm?.EditorID) ?? false)
                 {
                     continue;
@@ -275,6 +285,10 @@ public class Patcher(IPatcherState<ISkyrimMod, ISkyrimModGetter> State)
     public void Run()
     {
         Database = ReadAllKIDFiles();
+
+        Console.WriteLine($"Found {Database.LinesByType.Keys.Count} types of lines in the KID files.");
+        Console.WriteLine($"Found {Database.LinesByType.Values.Sum(lines => lines.Count)} total lines in the KID files.");
+        Console.WriteLine($"Found {Database.LinesByType[Core.KID.Enums.Type.Weapon].Count} weapon lines in the KID files.");
 
         foreach (var type in Database.LinesByType.Keys)
         {
