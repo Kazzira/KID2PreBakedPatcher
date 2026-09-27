@@ -227,17 +227,36 @@ public class Patcher(IPatcherState<ISkyrimMod, ISkyrimModGetter> State)
         var keywordToLines = Lines.GroupBy(line => line.Keyword)
             .ToDictionary(group => group.Key, group => group.ToList());
         
+        var allWeapons = State.LoadOrder
+                            .PriorityOrder
+                            .WinningOverrides<IWeaponGetter>()
+                            .ToList();
+
+        // Get number of cores in cpu.
+        var numCores = Environment.ProcessorCount - 1; // leave one core free for other tasks
+        var weaponsPerCore = (int)Math.Ceiling((double)allWeapons.Count / numCores);
+        var weaponsChunks = allWeapons.Chunk(weaponsPerCore).ToList();
 
         foreach (var keyword in keywordToLines.Keys)
         {
             Console.WriteLine($"Patching weapons with keyword {keyword} ({keywordToLines[keyword].Count} lines)");
 
-            var linesForKeyword = keywordToLines[keyword];
-            var weapons = State.LoadOrder
-                               .PriorityOrder
-                               .WinningOverrides<IWeaponGetter>()
-                               .Where(weap => linesForKeyword.Any(line => GetWeaponFilter(line.Filter, line.Trait, line.Chance)(weap)))
-                               .ToList();
+            var tasks = new List<Task<List<IWeaponGetter>>>();
+
+            foreach (var chunk in weaponsChunks)
+            {
+                tasks.Add(Task.Run(() =>
+                {
+                    var weapons = chunk
+                        .Where(weap => keywordToLines[keyword].Any(line => GetWeaponFilter(line.Filter, line.Trait, line.Chance)(weap)))
+                        .ToList();
+                    return weapons;
+                }));
+            }
+
+            Task.WaitAll(tasks.ToArray());
+
+            var weapons = tasks.SelectMany(task => task.Result).ToList();
             
             Console.WriteLine($"Found {weapons.Count} weapons to patch");
 
