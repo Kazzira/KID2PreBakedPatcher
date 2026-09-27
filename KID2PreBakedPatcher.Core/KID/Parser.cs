@@ -49,7 +49,8 @@ public class LineParser : ILineParser
         }
         else
         {
-            throw new NotImplementedException($"Parsing for type '{equalParts[0]}' is not implemented yet.");
+            Console.WriteLine($"Unknown line type: {equalParts[0]}");
+            return null;
         }
     }
 

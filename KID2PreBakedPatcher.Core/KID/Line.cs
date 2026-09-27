@@ -1,7 +1,8 @@
 namespace KID2PreBakedPatcher.Core.KID;
 
 
-
+// Lines can be KeywordLine or FormListLine.
+// For now, this is just keywords.
 
 public class Line
 {
