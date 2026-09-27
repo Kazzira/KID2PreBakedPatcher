@@ -26,7 +26,10 @@ public static partial class FormIDExtensions
         public FormID ToFormID()
         {
             var match = FormIDRegex().Match(str);
-            return new FormID(FormKey.Factory($"{match.Groups[1].Value}:{match.Groups[2].Value}"));
+            // hex id must be 6 characters.
+
+            var hexId = match.Groups[1].Value.PadLeft(6, '0');
+            return new FormID(FormKey.Factory($"{hexId}:{match.Groups[2].Value}"));
         }
     }
 }
