@@ -55,7 +55,7 @@ public class LineParser : ILineParser
 
     private Line ParseKeywordLine(string line)
     {
-        var columns = line.Split(',').Select(c => c.Trim()).Where(c => !string.IsNullOrEmpty(c)).ToList();
+        var columns = line.Split('|').Select(c => c.Trim()).Where(c => !string.IsNullOrEmpty(c)).ToList();
 
         if (columns.Count == 0)
         {
