@@ -99,8 +99,12 @@ public static partial class TraitExtensions
     [GeneratedRegex(@"^AR\((\d+)\/(\d+)\)$")]
     private static partial Regex ArmorRatingRegex();
 
+    [GeneratedRegex(@"^D\((\d+)\/(\d+)\)$")]
+    private static partial Regex DamageRegex();
+
     [GeneratedRegex(@"^W\((\d+)\/(\d+)\)$")]
     private static partial Regex WeightRegex();
+
 
 
     extension(string str)
@@ -179,9 +183,63 @@ public static partial class TraitExtensions
 
         private WeaponTrait ToWeaponTraitColumn()
         {
-            // Implement weapon trait parsing logic here
-            throw new NotImplementedException("Weapon trait parsing not implemented.");
+            var items = str.Split(',').Select(s => s.Trim()).Where(s => !string.IsNullOrEmpty(s)).ToList();
+
+            if (items.Count > 1)
+            {
+                return new WeaponTrait_Multiple([.. items.Select(i => i.ToWeaponTraitColumn() as WeaponTrait_Single ?? throw new InvalidOperationException($"Invalid weapon trait: {i}"))]);
+            }
+
+            var item = items[0];
+
+            if (item.StartsWith('-'))
+            {
+                var innerTrait = item[1..].ToWeaponTraitColumn() as WeaponTrait_NonNegate ?? throw new InvalidOperationException($"Invalid weapon trait: {item}");
+                return new WeaponTrait_Negate(innerTrait);
+            }
+
+            if (item.Length == 1)
+            {
+                if (item == "E") return new WeaponTrait_Enchanted();
+                if (item == "T") return new WeaponTrait_Template();
+                throw new InvalidOperationException($"Invalid weapon trait: {item}");
+            }
+
+            if (DamageRegex().IsMatch(item))
+            {
+                var match = DamageRegex().Match(item);
+                var min = decimal.Parse(match.Groups[1].Value);
+                var max = decimal.Parse(match.Groups[2].Value);
+                return new WeaponTrait_Damage(min, max);
+            }
+
+            if (WeightRegex().IsMatch(item))
+            {
+                var match = WeightRegex().Match(item);
+                var min = float.Parse(match.Groups[1].Value);
+                var max = float.Parse(match.Groups[2].Value);
+                return new WeaponTrait_Weight(min, max);
+            }
+
+            item = item.ToLowerInvariant();
+
+            return item switch
+            {
+                "handtohandmelee" => new WeaponTrait_HandToHandMelee(),
+                "onehandedsword" => new WeaponTrait_OneHandedSword(),
+                "onehandeddagger" => new WeaponTrait_OneHandedDagger(),
+                "onehandedaxe" => new WeaponTrait_OneHandedAxe(),
+                "onehandedmace" => new WeaponTrait_OneHandedMace(),
+                "twohandedsword" => new WeaponTrait_TwoHandedSword(),
+                "twohandedaxe" => new WeaponTrait_TwoHandedAxe(),
+                "twohandedmace" => new WeaponTrait_TwoHandedMace(),
+                "bow" => new WeaponTrait_Bow(),
+                "crossbow" => new WeaponTrait_Crossbow(),
+                "staff" => new WeaponTrait_Staff(),
+                _ => throw new InvalidOperationException($"Invalid weapon trait: {item}"),
+            };
         }
+
         private AmmoTrait ToAmmoTraitColumn()
         {
             // Implement ammo trait parsing logic here
