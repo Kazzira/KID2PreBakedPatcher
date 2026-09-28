@@ -120,43 +120,26 @@ public class Patcher(IPatcherState<ISkyrimMod, ISkyrimModGetter> State)
             return weapon => true;
         }
 
-        switch (Trait)
+        return Trait switch
         {
-            case Core.KID.LineColumns.WeaponTrait_Multiple traits:
-                return weapon => traits.Traits.All(trait => GetWeaponFilterByTrait(trait)(weapon));
-            case Core.KID.LineColumns.WeaponTrait_Negate traits:
-                return weapon => !GetWeaponFilterByTrait(traits.Trait)(weapon);
-            case Core.KID.LineColumns.WeaponTrait_Bow:
-                return weapon => weapon.Data?.AnimationType == WeaponAnimationType.Bow;
-            case Core.KID.LineColumns.WeaponTrait_Crossbow:
-                return weapon => weapon.Data?.AnimationType == WeaponAnimationType.Crossbow;
-            case Core.KID.LineColumns.WeaponTrait_HandToHandMelee:
-                return weapon => weapon.Data?.AnimationType == WeaponAnimationType.HandToHand;
-            case Core.KID.LineColumns.WeaponTrait_OneHandedAxe:
-                return weapon => weapon.Data?.AnimationType == WeaponAnimationType.OneHandAxe;
-            case Core.KID.LineColumns.WeaponTrait_OneHandedDagger:
-                return weapon => weapon.Data?.AnimationType == WeaponAnimationType.OneHandDagger;
-            case Core.KID.LineColumns.WeaponTrait_OneHandedMace:
-                return weapon => weapon.Data?.AnimationType == WeaponAnimationType.OneHandMace;
-            case Core.KID.LineColumns.WeaponTrait_OneHandedSword:
-                return weapon => weapon.Data?.AnimationType == WeaponAnimationType.OneHandSword;
-            case Core.KID.LineColumns.WeaponTrait_TwoHandedAxe:
-                return weapon => weapon.Data?.AnimationType == WeaponAnimationType.TwoHandAxe;
-            case Core.KID.LineColumns.WeaponTrait_TwoHandedSword:
-                return weapon => weapon.Data?.AnimationType == WeaponAnimationType.TwoHandSword;
-            case Core.KID.LineColumns.WeaponTrait_Damage damage:
-                return weapon => weapon.Critical?.Damage >= damage.Min && weapon.Critical?.Damage <= damage.Max;
-            case Core.KID.LineColumns.WeaponTrait_Weight weight:
-                return weapon => weapon.BasicStats?.Weight >= weight.Min && weapon.BasicStats?.Weight <= weight.Max;
-            case Core.KID.LineColumns.WeaponTrait_Enchanted:
-                return weapon => weapon.ObjectEffect is not null;
-            case Core.KID.LineColumns.WeaponTrait_Template:
-                return weapon => weapon.Template is not null;
-            case Core.KID.LineColumns.WeaponTrait_Staff:
-                return weapon => weapon.Data?.AnimationType == WeaponAnimationType.Staff;
-            default:
-                throw new NotImplementedException($"Weapon trait '{Trait.GetType().Name}' is not implemented yet.");
-        }
+            Core.KID.LineColumns.WeaponTrait_Multiple traits => weapon => traits.Traits.All(trait => GetWeaponFilterByTrait(trait)(weapon)),
+            Core.KID.LineColumns.WeaponTrait_Negate traits => weapon => !GetWeaponFilterByTrait(traits.Trait)(weapon),
+            Core.KID.LineColumns.WeaponTrait_Bow => weapon => weapon.Data?.AnimationType == WeaponAnimationType.Bow,
+            Core.KID.LineColumns.WeaponTrait_Crossbow => weapon => weapon.Data?.AnimationType == WeaponAnimationType.Crossbow,
+            Core.KID.LineColumns.WeaponTrait_HandToHandMelee => weapon => weapon.Data?.AnimationType == WeaponAnimationType.HandToHand,
+            Core.KID.LineColumns.WeaponTrait_OneHandedAxe => weapon => weapon.Data?.AnimationType == WeaponAnimationType.OneHandAxe,
+            Core.KID.LineColumns.WeaponTrait_OneHandedDagger => weapon => weapon.Data?.AnimationType == WeaponAnimationType.OneHandDagger,
+            Core.KID.LineColumns.WeaponTrait_OneHandedMace => weapon => weapon.Data?.AnimationType == WeaponAnimationType.OneHandMace,
+            Core.KID.LineColumns.WeaponTrait_OneHandedSword => weapon => weapon.Data?.AnimationType == WeaponAnimationType.OneHandSword,
+            Core.KID.LineColumns.WeaponTrait_TwoHandedAxe => weapon => weapon.Data?.AnimationType == WeaponAnimationType.TwoHandAxe,
+            Core.KID.LineColumns.WeaponTrait_TwoHandedSword => weapon => weapon.Data?.AnimationType == WeaponAnimationType.TwoHandSword,
+            Core.KID.LineColumns.WeaponTrait_Damage damage => weapon => weapon.Critical?.Damage >= damage.Min && weapon.Critical?.Damage <= damage.Max,
+            Core.KID.LineColumns.WeaponTrait_Weight weight => weapon => weapon.BasicStats?.Weight >= weight.Min && weapon.BasicStats?.Weight <= weight.Max,
+            Core.KID.LineColumns.WeaponTrait_Enchanted => weapon => !weapon.ObjectEffect.IsNull,
+            Core.KID.LineColumns.WeaponTrait_Template => weapon => !weapon.Template.IsNull,
+            Core.KID.LineColumns.WeaponTrait_Staff => weapon => weapon.Data?.AnimationType == WeaponAnimationType.Staff,
+            _ => throw new NotImplementedException($"Weapon trait '{Trait.GetType().Name}' is not implemented yet."),
+        };
     }
 
     private Func<IWeaponGetter, bool> GetWeaponFilterByChance(Core.KID.LineColumns.Chance? Chance)
