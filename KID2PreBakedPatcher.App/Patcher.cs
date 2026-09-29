@@ -135,8 +135,8 @@ public class Patcher(IPatcherState<ISkyrimMod, ISkyrimModGetter> State)
             Core.KID.LineColumns.WeaponTrait_TwoHandedSword => weapon => weapon.Data?.AnimationType == WeaponAnimationType.TwoHandSword,
             Core.KID.LineColumns.WeaponTrait_Damage damage => weapon => weapon.Critical?.Damage >= damage.Min && weapon.Critical?.Damage <= damage.Max,
             Core.KID.LineColumns.WeaponTrait_Weight weight => weapon => weapon.BasicStats?.Weight >= weight.Min && weapon.BasicStats?.Weight <= weight.Max,
-            Core.KID.LineColumns.WeaponTrait_Enchanted => weapon => !weapon.ObjectEffect.IsNull,
-            Core.KID.LineColumns.WeaponTrait_Template => weapon => !weapon.Template.IsNull,
+            Core.KID.LineColumns.WeaponTrait_Enchanted => weapon => weapon.ObjectEffect.TryResolve(State.LinkCache) is not null,
+            Core.KID.LineColumns.WeaponTrait_Template => weapon => weapon.Template.TryResolve(State.LinkCache) is not null,
             Core.KID.LineColumns.WeaponTrait_Staff => weapon => weapon.Data?.AnimationType == WeaponAnimationType.Staff,
             _ => throw new NotImplementedException($"Weapon trait '{Trait.GetType().Name}' is not implemented yet."),
         };
@@ -186,19 +186,19 @@ public class Patcher(IPatcherState<ISkyrimMod, ISkyrimModGetter> State)
     {
         return Filter switch
         {
-            Core.KID.LineColumns.Filter_And filters => weapon => filters.Filters.All(filter => GetWeaponFilterSingle(filter)(weapon)),
-            Core.KID.LineColumns.Filter_Or filters => weapon => filters.Filters.Any(filter => GetWeaponFilterSingle(filter)(weapon)),
-            Core.KID.LineColumns.Filter_Exclude        filter => weapon => !GetWeaponFilterSingle(filter.Filters)(weapon),
-            Core.KID.LineColumns.Filter_NifPathFull    filter => weapon => weapon.Model?.File.GivenPath?.Equals(filter.NifPath, StringComparison.OrdinalIgnoreCase) ?? false,
-            Core.KID.LineColumns.Filter_NifPathPartial filter => weapon => weapon.Model?.File.GivenPath?.Contains(filter.NifPath, StringComparison.OrdinalIgnoreCase) ?? false,
-            Core.KID.LineColumns.Filter_EditorIDOrFullNameOrKeywordFull filter => weapon => (weapon.EditorID?.Equals(filter.Value, StringComparison.OrdinalIgnoreCase) ?? false)
+            Core.KID.LineColumns.Filter_And                                filters => weapon => filters.Filters.All(filter => GetWeaponFilterSingle(filter)(weapon)),
+            Core.KID.LineColumns.Filter_Or                                 filters => weapon => filters.Filters.Any(filter => GetWeaponFilterSingle(filter)(weapon)),
+            Core.KID.LineColumns.Filter_Exclude                            filter  => weapon => !GetWeaponFilterSingle(filter.Filters)(weapon),
+            Core.KID.LineColumns.Filter_NifPathFull                        filter  => weapon => weapon.Model?.File.GivenPath?.Equals(filter.NifPath, StringComparison.OrdinalIgnoreCase) ?? false,
+            Core.KID.LineColumns.Filter_NifPathPartial                     filter  => weapon => weapon.Model?.File.GivenPath?.Contains(filter.NifPath, StringComparison.OrdinalIgnoreCase) ?? false,
+            Core.KID.LineColumns.Filter_EditorIDOrFullNameOrKeywordFull    filter  => weapon => (weapon.EditorID?.Equals(filter.Value, StringComparison.OrdinalIgnoreCase) ?? false)
                                 || (weapon.Name?.String?.Equals(filter.Value, StringComparison.OrdinalIgnoreCase) ?? false)
                                 || (weapon.Keywords?.Any(keyword => State.LinkCache.Resolve(keyword)?.EditorID?.Equals(filter.Value, StringComparison.OrdinalIgnoreCase) ?? false) ?? false),
-            Core.KID.LineColumns.Filter_EditorIDOrFullNameOrKeywordPartial filter => weapon => (weapon.EditorID?.Contains(filter.Value, StringComparison.OrdinalIgnoreCase) ?? false)
+            Core.KID.LineColumns.Filter_EditorIDOrFullNameOrKeywordPartial  filter => weapon => (weapon.EditorID?.Contains(filter.Value, StringComparison.OrdinalIgnoreCase) ?? false)
                                 || (weapon.Name?.String?.Contains(filter.Value, StringComparison.OrdinalIgnoreCase) ?? false)
                                 || (weapon.Keywords?.Any(keyword => State.LinkCache.Resolve(keyword)?.EditorID?.Contains(filter.Value, StringComparison.OrdinalIgnoreCase) ?? false) ?? false),
-            Core.KID.LineColumns.Filter_None => weapon => true,
-            Core.KID.LineColumns.Filter_PluginName filter => weapon => weapon.FormKey.ModKey.Name.Equals(filter.PluginName, StringComparison.OrdinalIgnoreCase),
+            Core.KID.LineColumns.Filter_None                                       => weapon => true,
+            Core.KID.LineColumns.Filter_PluginName                          filter => weapon => weapon.FormKey.ModKey.Name.Equals(filter.PluginName, StringComparison.OrdinalIgnoreCase),
             _ => throw new NotImplementedException($"Filter '{Filter.GetType().Name}' is not implemented yet."),
         };
     }
